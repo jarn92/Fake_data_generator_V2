@@ -193,7 +193,8 @@ def get_values(Info_variables,nbre_ligne,nbre_variable):
 	for i in range(nbre_variable):
 		val=[]
 		if Info_variables[i][0]=='independant':	
-			res.append(get_value(Info_variables[i][1:],nbre_ligne))
+			val=get_value(Info_variables[i][1:],nbre_ligne)
+			res.append(val)
 		
 		else:
 			index_dependance=Info_variables[i][1]
