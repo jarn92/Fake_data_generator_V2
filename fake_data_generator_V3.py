@@ -194,7 +194,8 @@ def get_values(Info_variables,nbre_ligne,nbre_variable):
 		val=[]
 		if Info_variables[i][0]=='independant':	
 			val=get_value(Info_variables[i][1:],nbre_ligne)
-					
+			res.append()
+			
 		else:
 			index_dependance=Info_variables[i][1]
 			variable_linked=Info_variables[index_dependance]
@@ -218,33 +219,24 @@ def get_values(Info_variables,nbre_ligne,nbre_variable):
 		res.append(val)
 	return res
 
-
-@st.cache
-def convert_df(df):
-    # IMPORTANT: Cache the conversion to prevent computation on every rerun
-    return df.to_csv().encode('utf-8')
-def to_excel(df):
-    output = BytesIO()
-    writer = pd.ExcelWriter(output, engine='xlsxwriter')
-    df.to_excel(writer, index=False, sheet_name='Sheet1')
-    writer.save()
-    processed_data = output.getvalue()
-    return processed_data
-
-def main():
-	st.title('Fake_Data_Generator')
-	l,c,r=st.columns(3)
-	
-	name_file=l.text_input('Insert the name of the new file')
-	nbre_ligne=int(c.number_input('How many rows do you want ?',step=1000))
-	nbre_variable=int(r.number_input('How many variables do you want ?',min_value=1,step=1))
-
+def create_sample(nbre_variable):
 	Name_variables,Info_variables=get_Names_Info(nbre_variable)
 	Values_Sample=get_values(Info_variables,5,nbre_variable)
 
 	Sample = pd.DataFrame(dict(zip(Name_variables,Values_Sample)))
 	st.header('Sample of the new data set')
 	st.write(Sample.head())
+
+def input()
+	l,c,r=st.columns(3)
+	
+	name_file=l.text_input('Insert the name of the new file')
+	nbre_ligne=int(c.number_input('How many rows do you want ?',step=1000))
+	nbre_variable=int(r.number_input('How many variables do you want ?',min_value=1,step=1))
+
+	return (name_file,nbre_ligne,nbre_variable)
+
+def create_data_set(name_file,nbre_ligne,nbre_variable):
 	le,ce,ri=st.columns(3)
 
 	if le.button('Create the new Data Set '):
@@ -256,4 +248,27 @@ def main():
 				   
 		ce.download_button(label="📥 Download (.csv)",data=csv,file_name=f'{name_file}.csv',mime='text/csv')
 		ri.download_button(label="📥 Download (.xlsx)",data=df_excel,file_name=f'{name_file}.xlsx',mime='text/xlsx')
+
+
+@st.cache
+def convert_df(df):
+    # IMPORTANT: Cache the conversion to prevent computation on every rerun
+    return df.to_csv().encode('utf-8')
+
+def to_excel(df):
+    output = BytesIO()
+    writer = pd.ExcelWriter(output, engine='xlsxwriter')
+    df.to_excel(writer, index=False, sheet_name='Sheet1')
+    writer.save()
+    processed_data = output.getvalue()
+    return processed_data
+
+def main():
+	st.title('Fake_Data_Generator')
+	
+	name_file,nbre_ligne,nbre_variable=input()
+	
+	create_sample(nbre_variable)
+	
+	create_data_set(name_file,nbre_ligne,nbre_variable)
 main()
