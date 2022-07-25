@@ -179,7 +179,7 @@ def get_value(variable_description,nbre_ligne):
 			elif variable_description[2]=='gauss':
 				moy,sig=variable_description[3]
 				if variable_description[2]=='float':
-					_res=random.gauss(moy,sig)
+					_res=[random.gauss(moy,sig) for k in range(nbre_ligne)]
 				else:
 					_res= [int(random.gauss(int(moy),int(sig))) for k in range(nbre_ligne)]
 		else:
