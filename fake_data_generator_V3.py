@@ -162,14 +162,38 @@ def get_one_value(variable_description):
 
 	return _res
 
+def get_value(variable_description,nbre_ligne):
+
+	if variable_description[0]=='pre-made':
+		field=Field(Locale.EN)
+		_res=[field(variable_description[1]) for k in range(nbre_ligne)] 
+	else:
+		if variable_description[1]=='float' or variable_description[1]=='int':
+			if variable_description[2]=='uniform':
+				mi,ma=variable_description[3]
+				if variable_description[1]=='float':
+					_res=[random.uniform(mi,ma) for k in range(nbre_ligne)]
+				else:
+					_res=[random.randint(int(mi),int(ma)) for k in range(nbre_ligne)]
+
+			elif variable_description[2]=='gauss':
+				moy,sig=variable_description[3]
+				if variable_description[2]=='float':
+					_res=random.gauss(moy,sig)
+				else:
+					_res= [int(random.gauss(int(moy),int(sig))) for k in range(nbre_ligne)]
+		else:
+			_res = random.choices(variable_description[2],weights=variable_description[3],k=nbre_ligne)
+
+	return _res
+
 def get_values(Info_variables,nbre_ligne,nbre_variable):
 	res=[]
 	#a modifier info varaible arguments supplémentaire
 	for i in range(nbre_variable):
 		val=[]
 		if Info_variables[i][0]=='independant':	
-			for j in range(nbre_ligne):
-				val.append(get_one_value(Info_variables[i][1:]))
+			res.append(get_value(Info_variables[i][1:],nbre_ligne))
 		
 		else:
 			index_dependance=Info_variables[i][1]
@@ -199,7 +223,6 @@ def get_values(Info_variables,nbre_ligne,nbre_variable):
 def convert_df(df):
     # IMPORTANT: Cache the conversion to prevent computation on every rerun
     return df.to_csv().encode('utf-8')
-@st.cache
 def to_excel(df):
     output = BytesIO()
     writer = pd.ExcelWriter(output, engine='xlsxwriter')
@@ -234,5 +257,3 @@ def main():
 		ce.download_button(label="📥 Download (.csv)",data=csv,file_name=f'{name_file}.csv',mime='text/csv')
 		ri.download_button(label="📥 Download (.xlsx)",data=df_excel,file_name=f'{name_file}.xlsx',mime='text/xlsx')
 main()
-
-
