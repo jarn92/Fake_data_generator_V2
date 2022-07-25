@@ -227,7 +227,7 @@ def create_sample(nbre_variable):
 	st.header('Sample of the new data set')
 	st.write(Sample.head())
 
-def input()
+def input():
 	l,c,r=st.columns(3)
 	
 	name_file=l.text_input('Insert the name of the new file')
