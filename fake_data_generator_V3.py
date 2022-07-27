@@ -9,25 +9,32 @@ from io import BytesIO
 
 
 
-def erase(i):
-	st.session_state[f'variable n°{i}']=""
 
 def create_matrix(n):
 	return [[] for k in range(n)]
 
 def get_windows(nbre_variable):
-	for i in range(nbre_variable):
-		if f'variable n°{i}' not in st.session_state:
+	"""
+	we create the windows for the layout of the variables
+	"""
+	for i in range(nbre_variable):# on boucle pour chaque variable à creer 
+		if f'variable n°{i}' not in st.session_state:# si son nom n'a pas encore été modifié je lui assigne la valeur variable n°{i+1}
 			st.session_state[f'variable n°{i}']=f'variable n°{i+1}'
-	return st.tabs([st.session_state[f'variable n°{i}'] for i in range(nbre_variable)])
+	return st.tabs([st.session_state[f'variable n°{i}'] for i in range(nbre_variable)]) #je retourne une liste de fenêtre qui correspond à nos variables
 
 def get_Info(index_varaible,i):
+	"""
+	create the liste of the parametres wich define the variable n°indexe_variable (the second indexe i is used for the dependant variables)
+	"""
 	res=[]
-	l,c,r=st.columns(3) 
-	choice=l.selectbox('Which varaible do you want ?',('pre-made','personalized'),help='With the pre-made: you will use pre-made data base; with the personalized: you will need to provide it',key=f'{index_varaible}_{i}')
-	res.append(choice)
+	l,c,r=st.columns(3) #permet de partitionner l'espace en 3 colonnes
+	choice=l.selectbox('Which varaible do you want ?',('pre-made','personalized'),help='With the pre-made: you will use pre-made data base; with the personalized: you will need to provide it',key=f'{index_varaible}_{i}') # permet de faire son choix entre pre-made et personalized
+	res.append(choice)# on ajoute ce choix à la liste des paramètres
 
 	if choice=='pre-made':
+		"""
+		si on a choisit pre-made on doit faire le choix de son repertoire puis de la base de donnée
+		"""
 		type_variable=c.selectbox('Wich data do you want ?',('Address','Finance','Datetime','Person','Science'),key=f'type_variable{i}{index_varaible}')
 		lov_categories = ['Address','Finance','Datetime','Person','Science']
 		address_lovs = ('address','calling_code','city','continent','coordinates','country','federal_subject','latitude','postal_code','province','region','street_name','street_number')
@@ -38,29 +45,32 @@ def get_Info(index_varaible,i):
 		lovs = [address_lovs, finance_lovs, datetime_lovs, person_lovs, science_lovs]
 		dict_lovs = dict(zip(lov_categories, lovs))
 		variable=r.selectbox(f'Which {type_variable} do you want ?', dict_lovs[type_variable], key=f'variable{i}_{index_varaible}')
-		res.append(variable)
+		res.append(variable) #on ajoute la base de donnée a la liste des paramètre
 
 	else:
-		type_variable=c.selectbox('wich type of data do you want ?',('int','float','categorical'),key=f'type{i}_{index_varaible}')
+		type_variable=c.selectbox('wich type of data do you want ?',('int','float','categorical'),key=f'type{i}_{index_varaible}') #permet de choisir le type de la variable si elle est personnalisée
 		res.append(type_variable)
 
 		if type_variable=='float'or type_variable=='int':
 			le,ri=st.columns(2)
-			loi=r.selectbox('Wich law do you want ?',('uniform','gauss'),key=f'law{i}_{index_varaible}')
-			res.append(loi)
+			loi=r.selectbox('Wich law do you want ?',('uniform','gauss'),key=f'law{i}_{index_varaible}') # pour des variables entieres et floattantes on peut choisir sa loi
+			res.append(loi) # on ajoute ce choix à la liste de paramètre
 			if loi=='uniform' :
 				max_=le.number_input('value max',key=f'max{i}_{index_varaible}')
 				min_=ri.number_input('value min',key=f'min{i}_{index_varaible}')
-				res.append((min_,max_))
+				res.append((min_,max_)) #on ajoute les coefficients significatif de chaque loi à la liste de paramètre
 			elif loi=='gauss':
 				moy=le.number_input('mean',key=f'moy{i}')
 				sig=ri.number_input('standard error',key=f'sig{i}_{index_varaible}')
 				res.append((moy,sig))
 		else:
-			nbre_category=r.number_input('How many category ?',min_value=1,max_value=12,step=1,key=f'nbre_category{i}_{index_varaible}')
-			liste=[]
-			list_weigth=[]
-			columns=st.columns(6)
+			nbre_category=r.number_input('How many category ?',min_value=1,max_value=12,step=1,key=f'nbre_category{i}_{index_varaible}') # si c'est une variable catégorique on ajoute le nombre de catégories qu'on souhaite
+			liste=[] # la liste des catégories 
+			list_weigth=[] # la liste des poids 
+			columns=st.columns(6) # permet de partionner l'espace en 6
+			"""
+			ces boucles permettent de possitionner correctement les boutons des catégories et le poids 
+			"""
 			for m in range(int(nbre_category//3)):
 				for w in range(3):
 					liste.append(columns[2*w].text_input('Category',key=f'quotient{i}{w}{m}_{index_varaible}'))
@@ -70,7 +80,7 @@ def get_Info(index_varaible,i):
 				list_weigth.append(columns[2*j+1].number_input('Weight',min_value=1,step=1,key=f'weight_rest{i}{j}_{index_varaible}'))
 
 			res.append(liste)
-			res.append(list_weigth)
+			res.append(list_weigth)#on ajoute ces deux listes à la liste des paramètres
 	return res
 
 def get_behavior(variable_linked,i,index_varaible):
@@ -107,8 +117,9 @@ def get_index_from_name(name,Name_variables):
 
 
 def get_Names_Info(nbre_variable):
-	
-	
+	"""
+	We create 2 liste : the first with the names of the variables, the second with all the information wich define a variable
+	"""
 	windows=get_windows(nbre_variable)
 	Name_variables=[]
 	Info_variables=create_matrix(nbre_variable)
@@ -129,7 +140,6 @@ def get_Names_Info(nbre_variable):
 				nbre_behavior=r.number_input('How many behavior do you want ?',step=1,min_value=1,key=f'behavior{i}')
 				
 				index_dependance=get_index_from_name(name_dependance,Name_variables)
-				#pour les varaibles dependante 0: dependant 1: indexe de la variable de liason 2:liste des comportement(liste des categories ou doublet si int ou float 3:liste des nouvezaux comportements de la variable)
 				Info_variables[i].append(index_dependance)
 				l1,l2=get_info_dependant(i,Info_variables[index_dependance],nbre_behavior)
 				Info_variables[i].append(l1)
@@ -263,7 +273,7 @@ def to_excel(df):
     return processed_data
 
 def main():
-	st.title('Fake_Data_Generator')
+	st.title('Fake_Data_Generator')		
 	
 	name_file,nbre_ligne,nbre_variable=input()
 	
